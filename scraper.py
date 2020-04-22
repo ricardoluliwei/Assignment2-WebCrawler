@@ -7,6 +7,7 @@ from utils import get_logger
 from urllib.request import Request
 def scraper(url, resp):
     links = extract_next_links(url, resp)
+    get_logger("scraper").info(f"Scrape from : {url}")
     return [link for link in links if is_valid(link)]
 
 def extract_next_links(url: str, resp : Response):
@@ -19,12 +20,14 @@ def extract_next_links(url: str, resp : Response):
     links = soup.find_all('a')
     result = list()
     for link in links:
-        if 'href' not in link:
-            continue
         parsedLink = urlparse(link['href'])
         link = parsed.netloc if not parsedLink.netloc else parsedLink.netloc
         link += parsedLink.path
+        if link == url:
+            continue
         result.append(link)
+        logger = get_logger("scraper")
+        logger.info(f"Added URL: {link}")
     
     return result
 
