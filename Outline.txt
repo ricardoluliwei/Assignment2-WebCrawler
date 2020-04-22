@@ -1,0 +1,12 @@
+1.get the urls
+ avoid duplicated url, different #fragment with same path will be considered as
+ same url
+
+ extract the domain to ensure that we will not get out of the website
+ ex. ics.uci.edu
+ subdomains are allowed ex. xxx.ics.uci.edu
+
+ read robots.txt, avoid pages that can not be visited
+
+ avoid traps,
+2.
