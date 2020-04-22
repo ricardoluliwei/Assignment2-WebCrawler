@@ -12,15 +12,21 @@ def scraper(url, resp):
 def extract_next_links(url: str, resp : Response):
     if resp.error:
         return list()
-    
-    logger = get_logger("scraper")
-    logger.info(f"scrapering URL: {url}")
+
+    parsed = urlparse(url)
     
     soup = BeautifulSoup(resp.raw_response.content, features='lxml')
     links = soup.find_all('a')
-    links = [l['href'].replace(r'#.', '') for l in links if is_valid(l['href'])]
+    result = list()
+    for link in links:
+        if 'href' not in link:
+            continue
+        parsedLink = urlparse(link['href'])
+        link = parsed.netloc if not parsedLink.netloc else parsedLink.netloc
+        link += parsedLink.path
+        result.append(link)
     
-    return links
+    return result
 
 def is_valid(url):
     try:
