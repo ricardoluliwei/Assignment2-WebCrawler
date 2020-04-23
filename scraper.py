@@ -2,41 +2,84 @@ import re
 from urllib.parse import urlparse
 from utils.response import Response
 from bs4 import BeautifulSoup
-from utils import get_logger
 
-from urllib.request import Request
+from utils import get_logger, get_urlhash
+from collections import defaultdict
+
+# key is the subdomain of ics.uci.edu, value is the pages' hash in the subdomain
+global subdomains
+subdomains = defaultdict(lambda: set())
+
+# key is the url of longestPage, value is the length
+global longestPage
+longestPage = tuple()
+
+# key is the words, value is the frequency
+global wordsFrequency
+wordsFrequency = defaultdict(lambda: 0)
+
+# how many unique pages found
+global uniquePages
+uniquePages = int()
+
 def scraper(url, resp):
     links = extract_next_links(url, resp)
-    get_logger("scraper").info(f"Scrape from : {url}")
-    return [link for link in links if is_valid(link)]
+    uniquePages += len(links)
+    return extract_next_links(url, resp)
 
-def extract_next_links(url: str, resp : Response):
+def extract_next_links(url: str, resp: Response):
     if resp.error:
         return list()
 
-    parsed = urlparse(url)
+    # logger = get_logger("scraper")
+    # logger.info(f"Scrape from : {url}")
+    print(f"scrape form {url}")
+    rootURL = urlparse(url)
     
     soup = BeautifulSoup(resp.raw_response.content, features='lxml')
     links = soup.find_all('a')
-    result = list()
-    for link in links:
-        parsedLink = urlparse(link['href'])
-        link = parsed.netloc if not parsedLink.netloc else parsedLink.netloc
-        link += parsedLink.path
-        if link == url:
-            continue
-        result.append(link)
-        logger = get_logger("scraper")
-        logger.info(f"Added URL: {link}")
     
-    return result
+    result = set()
+    
+    for l in links:
+        try:
+            #links are the urls found in this page
+            link = l["href"]
+            # defragement
+            link = link.replace(r"#.*", "")
+            
+            linkParse = urlparse(link)
+            domain = linkParse.netloc
+            
+            #count the subdomains in ics.uci.edu
+            if re.match(r".*ics.uci.edu.*", domain):
+                    subdomains[domain].add(get_urlhash(link))
+                    
+            #do content analysis here
+            
+            #get the original url
+            if not linkParse.scheme:
+                if not linkParse.netloc:
+                    link = rootURL.netloc + link
+                link = rootURL.scheme + link
+            
+            if is_valid(link):
+                result.add(link)
+                # logger = get_logger("scraper")
+                # logger.info(f"New Found URL: {link}")
+                print(f"new add : {link}")
+        except:
+            pass
+    
+    return list(result)
+
 
 def is_valid(url):
     try:
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
-
+        
         if not re.match(
             r".*ics.uci.edu.*|"
             + r".*cs.uci.edu.*|"
@@ -44,7 +87,6 @@ def is_valid(url):
             + r".*stat.uci.edu.*|"
             + r"today.uci.edu/department/information_computer_sciences.*",
             parsed.netloc.lower()):
-            
             return False
         
         if re.match(
@@ -59,7 +101,7 @@ def is_valid(url):
             return False
         
         return True
-
+    
     except TypeError:
-        print ("TypeError for ", parsed)
+        print("TypeError for ", parsed)
         raise
