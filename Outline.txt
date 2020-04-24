@@ -1,4 +1,4 @@
-1.get the urls
+1.scraper
  avoid duplicated url, different #fragment with same path will be considered as
  same url
 
@@ -8,5 +8,12 @@
 
  read robots.txt, avoid pages that can not be visited
 
- avoid traps,
+ avoid traps, only crawler certain number of pages in a subdomain
+ do it in is_valid, record the number of pages of a subdomain, when the number
+ excess a certain number, return invalid for all urls of that subdomain
+
+ avoid low value pages, ex. calender
+ do it in extract_next_link, use tokenize,
+
+
 2.

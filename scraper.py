@@ -7,30 +7,31 @@ from utils import get_logger, get_urlhash
 from collections import defaultdict
 
 # key is the subdomain of ics.uci.edu, value is the pages' hash in the subdomain
-global subdomains
 subdomains = defaultdict(lambda: set())
 
 # key is the url of longestPage, value is the length
-global longestPage
 longestPage = tuple()
 
 # key is the words, value is the frequency
-global wordsFrequency
 wordsFrequency = defaultdict(lambda: 0)
 
 # how many unique pages found
-global uniquePages
-uniquePages = int()
+uniquePages = 0
+
+depth = 200
+
 
 def scraper(url, resp):
+    global uniquePages
     links = extract_next_links(url, resp)
-    uniquePages += len(links)
-    return extract_next_links(url, resp)
+    uniquePages += 1
+    return links
 
-def extract_next_links(url: str, resp: Response):
+
+def extract_next_links(url: str, resp: Response) -> list:
     if resp.error:
         return list()
-
+    
     # logger = get_logger("scraper")
     # logger.info(f"Scrape from : {url}")
     print(f"scrape form {url}")
@@ -43,7 +44,7 @@ def extract_next_links(url: str, resp: Response):
     
     for l in links:
         try:
-            #links are the urls found in this page
+            # links are the urls found in this page
             link = l["href"]
             # defragement
             link = link.replace(r"#.*", "")
@@ -51,13 +52,7 @@ def extract_next_links(url: str, resp: Response):
             linkParse = urlparse(link)
             domain = linkParse.netloc
             
-            #count the subdomains in ics.uci.edu
-            if re.match(r".*ics.uci.edu.*", domain):
-                    subdomains[domain].add(get_urlhash(link))
-                    
-            #do content analysis here
-            
-            #get the original url
+            # get the original url
             if not linkParse.scheme:
                 if not linkParse.netloc:
                     link = rootURL.netloc + link
@@ -68,6 +63,13 @@ def extract_next_links(url: str, resp: Response):
                 # logger = get_logger("scraper")
                 # logger.info(f"New Found URL: {link}")
                 print(f"new add : {link}")
+            
+            # count the subdomains
+            subdomains[domain].add(get_urlhash(link))
+            
+            # do content analysis here
+        
+        
         except:
             pass
     
@@ -77,6 +79,17 @@ def extract_next_links(url: str, resp: Response):
 def is_valid(url):
     try:
         parsed = urlparse(url)
+        domain = parsed.netloc
+        
+        # if we have added this page, this page becomes invalid
+        if get_urlhash(url) in subdomains[domain]:
+            return False
+        
+        # if we have found enough pages in a certian subdomain
+        # all urls from the subdomain becomes invalid
+        if len(subdomains[domain]) >= depth:
+            return False
+        
         if parsed.scheme not in set(["http", "https"]):
             return False
         
