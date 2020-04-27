@@ -8,13 +8,13 @@ from collections import defaultdict
 class Crawler(object):
     def __init__(self, config, restart, frontier_factory=Frontier,
                  worker_factory=Worker):
+        self.counter = shelve.open("count.shelve")
+        self.load_counter()
         self.config = config
         self.logger = get_logger("CRAWLER")
         self.frontier = frontier_factory(config, restart)
         self.workers = list()
         self.worker_factory = worker_factory
-        
-        self.count
     
     def start_async(self):
         self.workers = [
@@ -32,8 +32,7 @@ class Crawler(object):
             worker.join()
     
     def load_counter(self):
-        self.counter = shelve.open("count.shelve")
-        
+    
         # how many unique pages in a domain, only crawl a certain number of pages
         # in a domain in case of traps
         # dict key is the domain, value is the set of pages' url hash
@@ -44,12 +43,16 @@ class Crawler(object):
         # longest page
         self.counter["longestPage"] = self.counter.get("longestPage", tuple(str,
                                                                             int))
+        
     
     def get_unique_pages(self):
         pages = 0
         for k, v in self.counter["PagesInDomain"].items():
             pages += len(v)
-        return
+        return pages
     
     def get_longest_page(self):
-        self.
+        return self.counter["longestPage"][0]
+    
+    def get_subdomain_of_ics(self):
+    

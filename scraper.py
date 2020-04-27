@@ -14,9 +14,7 @@ depth = 200
 
 
 def scraper(url, resp, counter: shelve.DbfilenameShelf):
-    global uniquePages
     links = extract_next_links(url, resp, counter)
-    uniquePages += 1
     return links
 
 
@@ -65,6 +63,8 @@ def extract_next_links(url: str, resp: Response, counter: shelve.DbfilenameShelf
         #do analysis here
         text = soup.text
         tokens = tokenize(text)
+        length = len(tokens)
+        maxLength
         
     return list(result)
 
