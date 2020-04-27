@@ -6,29 +6,21 @@ from bs4 import BeautifulSoup
 from utils import get_logger, get_urlhash
 from collections import defaultdict
 
-# key is the subdomain of ics.uci.edu, value is the pages' hash in the subdomain
-subdomains = defaultdict(lambda: set())
+from tokenizer import tokenize
+from tokenizer import compute_word_frequencies
 
-# key is the url of longestPage, value is the length
-longestPage = tuple()
-
-# key is the words, value is the frequency
-wordsFrequency = defaultdict(lambda: 0)
-
-# how many unique pages found
-uniquePages = 0
-
+import shelve
 depth = 200
 
 
-def scraper(url, resp):
+def scraper(url, resp, counter: shelve.DbfilenameShelf):
     global uniquePages
-    links = extract_next_links(url, resp)
+    links = extract_next_links(url, resp, counter)
     uniquePages += 1
     return links
 
 
-def extract_next_links(url: str, resp: Response) -> list:
+def extract_next_links(url: str, resp: Response, counter: shelve.DbfilenameShelf) -> list:
     if resp.error:
         return list()
     
@@ -65,29 +57,30 @@ def extract_next_links(url: str, resp: Response) -> list:
                 print(f"new add : {link}")
             
             # count the subdomains
-            subdomains[domain].add(get_urlhash(link))
-            
-            # do content analysis here
-        
-        
+            counter["PagesInDomain"][domain].add(get_urlhash(link))
+  
         except:
             pass
-    
+        
+        #do analysis here
+        text = soup.text
+        tokens = tokenize(text)
+        
     return list(result)
 
 
-def is_valid(url):
+def is_valid(url, counter: shelve.DbfilenameShelf):
     try:
         parsed = urlparse(url)
         domain = parsed.netloc
         
         # if we have added this page, this page becomes invalid
-        if get_urlhash(url) in subdomains[domain]:
+        if get_urlhash(url) in counter["PagesInDomain"][domain]:
             return False
         
         # if we have found enough pages in a certian subdomain
         # all urls from the subdomain becomes invalid
-        if len(subdomains[domain]) >= depth:
+        if len(counter["PagesInDomain"][domain]) > depth:
             return False
         
         if parsed.scheme not in set(["http", "https"]):
