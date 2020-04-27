@@ -69,6 +69,8 @@ def extract_next_links(url: str, resp: Response, counter: shelve.DbfilenameShelf
         infile = open("stopWords.txt","r")
         new_tokens = [x for x in tokens if not in infile.read()]
         
+        counter["WordFrequencies"] = compute_word_frequencies(new_tokens)
+        
     return list(result)
 
 
