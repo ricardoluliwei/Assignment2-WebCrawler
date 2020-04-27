@@ -66,6 +66,9 @@ def extract_next_links(url: str, resp: Response, counter: shelve.DbfilenameShelf
         text = soup.text
         tokens = tokenize(text)
         
+        infile = open("stopWords.txt","r")
+        new_tokens = [x for x in tokens if not in infile.read()]
+        
     return list(result)
 
 
