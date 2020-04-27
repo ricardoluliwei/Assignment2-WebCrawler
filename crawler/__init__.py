@@ -44,6 +44,10 @@ class Crawler(object):
         # longest page
         self.counter["longestPage"] = self.counter.get("longestPage", tuple(str,
                                                                             int))
+        
+        # word frequencies
+        self.counter["WordFrequencies"] = self.counter.get("WordFrequencies", dict(str, int))
+        
     
     def get_unique_pages(self):
         pages = 0
