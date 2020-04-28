@@ -3,7 +3,7 @@ from crawler.frontier import Frontier
 from crawler.worker import Worker
 import shelve
 from collections import defaultdict
-
+from re import match
 
 class Crawler(object):
     def __init__(self, config, restart, frontier_factory=Frontier,
@@ -32,27 +32,31 @@ class Crawler(object):
             worker.join()
     
     def load_counter(self):
-    
-        # how many unique pages in a domain, only crawl a certain number of pages
-        # in a domain in case of traps
-        # dict key is the domain, value is the set of pages' url hash
+        
+        # Record how many unique pages in a domain, only crawl a certain number
+        # of pages in a domain in case of traps.
+        # Dict key is the domain, value is the set of pages' url hash
         self.counter["PagesInDomain"] = self.counter.get("PagesInDomain",
-                                                         defaultdict(str,
-                                                                     set()))
+                                                         defaultdict(str))
         
         # longest page
-        self.counter["longestPage"] = self.counter.get("longestPage", tuple(str,
-                                                                            int))
+        self.counter["longestPage"] = self.counter.get("longestPage",
+                                                       tuple())
         
+        # word frequencies
+        self.counter["WordFrequencies"] = self.counter.get("WordFrequencies",
+                                                           defaultdict(str))
     
-    def get_unique_pages(self):
-        pages = 0
+    def get_unique_pages(self) -> int:
+        count = 0
         for k, v in self.counter["PagesInDomain"].items():
-            pages += len(v)
-        return pages
+            count += len(v)
+        return count
     
-    def get_longest_page(self):
-        return self.counter["longestPage"][0]
+    def get_longest_page(self) -> ():
+        return self.counter["longestPage"]
     
-    def get_subdomain_of_ics(self):
-    
+    def get_subdomain_of_ics(self) -> dict:
+        domains = self.counter["PagesInDomain"]
+        return {k: domains[k] for k, v in domains.items() if match(
+            r".*ics.uci.edu.*", k)}

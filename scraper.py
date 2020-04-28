@@ -10,6 +10,7 @@ from tokenizer import tokenize
 from tokenizer import compute_word_frequencies
 
 import shelve
+
 depth = 200
 
 
@@ -18,7 +19,8 @@ def scraper(url, resp, counter: shelve.DbfilenameShelf):
     return links
 
 
-def extract_next_links(url: str, resp: Response, counter: shelve.DbfilenameShelf) -> list:
+def extract_next_links(url: str, resp: Response,
+                       counter: shelve.DbfilenameShelf) -> list:
     if resp.error:
         return list()
     
@@ -56,16 +58,22 @@ def extract_next_links(url: str, resp: Response, counter: shelve.DbfilenameShelf
             
             # count the subdomains
             counter["PagesInDomain"][domain].add(get_urlhash(link))
-  
+        
         except:
             pass
-        
-        #do analysis here
-        text = soup.text
-        tokens = tokenize(text)
-        length = len(tokens)
-        maxLength
-        
+    
+    # do analysis here, get longest page and
+    text = soup.text
+    tokens = tokenize(text)
+    # compute the longest page
+    if len(tokens) > counter["longestPage"][1]:
+        counter["longestPage"] = (url, len(tokens))
+    
+    # compute word frequencies
+    infile = open("stopWords.txt", "r")
+    new_tokens = [x for x in tokens if x not in infile.read()]
+    counter["WordFrequencies"] = compute_word_frequencies(new_tokens)
+    
     return list(result)
 
 
@@ -78,12 +86,12 @@ def is_valid(url, counter: shelve.DbfilenameShelf):
         if get_urlhash(url) in counter["PagesInDomain"][domain]:
             return False
         
-        # if we have found enough pages in a certian subdomain
+        # if we have found enough pages in a certain subdomain
         # all urls from the subdomain becomes invalid
         if len(counter["PagesInDomain"][domain]) > depth:
             return False
         
-        if parsed.scheme not in set(["http", "https"]):
+        if parsed.scheme not in {"http", "https"}:
             return False
         
         if not re.match(
@@ -92,7 +100,7 @@ def is_valid(url, counter: shelve.DbfilenameShelf):
             + r".*informatics.uci.edu.*|"
             + r".*stat.uci.edu.*|"
             + r"today.uci.edu/department/information_computer_sciences.*",
-            parsed.netloc.lower()):
+                parsed.netloc.lower()):
             return False
         
         if re.match(
