@@ -2,9 +2,6 @@ import re
 from urllib.parse import urlparse
 from utils.response import Response
 from bs4 import BeautifulSoup
-from bs4.element import Comment
-
-from utils import get_logger
 
 from tokenizer import tokenize
 from tokenizer import compute_word_frequencies
@@ -18,6 +15,7 @@ high_token_limit = 10000
 
 stop_words = open("stop_words.txt", "r").read()
 
+
 def scraper(url, resp, counter: shelve.DbfilenameShelf):
     links = extract_next_links(url, resp, counter)
     return links
@@ -28,17 +26,15 @@ def extract_next_links(url: str, resp: Response,
     if resp.error:
         return list()
     
-    print(f"Scrape form {url}")
-    rootURL = urlparse(url)
+    print(f"extract: {url}")
     
     soup = BeautifulSoup(resp.raw_response.content, features='lxml')
-    links = soup.find_all('a')
-
+    
     # do analysis here, get longest page
-    # text is the content that we extract from the page
+    # text is the pure text that we extract from the page excluding html tags
     text = soup.get_text()
     tokens = tokenize(text)
-
+    
     # compute word frequencies
     new_tokens = [x for x in tokens if x not in stop_words]
     word_frequencies = compute_word_frequencies(new_tokens)
@@ -50,12 +46,22 @@ def extract_next_links(url: str, resp: Response,
     # if the page is too large skip it
     if len(tokens) > high_token_limit:
         return list()
+    
+    compute_longest_page(url, tokens, counter)
+    count_word_frequenies(word_frequencies, counter)
+    count_pages_in_domain(url, counter)
+    
+    return get_url_from_page(url, soup, counter)
 
-    # compute the longest page
+
+# compute the longest page
+def compute_longest_page(url, tokens, counter):
     if len(tokens) > counter["longestPage"][1]:
         counter["longestPage"] = [url, len(tokens)]
-    
-    # add the word_frequencies to the total WordFrequencies
+
+
+# add the word_frequencies to the total WordFrequencies
+def count_word_frequenies(word_frequencies, counter):
     WordFrequencies = counter["WordFrequencies"]
     for k, v in word_frequencies.items():
         if k in WordFrequencies.keys():
@@ -65,6 +71,20 @@ def extract_next_links(url: str, resp: Response,
     
     counter["WordFrequencies"] = WordFrequencies
 
+
+# count the pages in a domain
+def count_pages_in_domain(url: str, counter):
+    parse = urlparse(url)
+    domain = parse.netloc
+    PagesInDomain = counter["PagesInDomain"]
+    PagesInDomain[domain].add(url)
+    counter["PagesInDomain"] = PagesInDomain
+
+
+# extract all url from a page
+def get_url_from_page(url: str, soup: BeautifulSoup, counter) -> list:
+    parse = urlparse(url)
+    links = soup.find_all('a')
     result = set()
     for l in links:
         try:
@@ -74,24 +94,17 @@ def extract_next_links(url: str, resp: Response,
             link = link.replace(r"#.*", "")
             
             linkParse = urlparse(link)
-            domain = linkParse.netloc
             
             # get the complete url
             if not linkParse.scheme:
                 if not linkParse.netloc:
-                    link = rootURL.netloc + link
-                link = rootURL.scheme + link
+                    link = parse.netloc + link
+                link = parse.scheme + link
             
             if is_valid(link, counter):
                 result.add(link)
-                print(f"new add : {link}")
-            
-            # count the subdomains
-            PagesInDomain = counter["PagesInDomain"]
-            PagesInDomain[domain].add(link)
-            counter[PagesInDomain] = PagesInDomain
-        
-        except:
+                print(f"get: {url}")
+        finally:
             pass
     
     return list(result)
@@ -106,8 +119,8 @@ def is_valid(url, counter: shelve.DbfilenameShelf):
         if url in counter["PagesInDomain"][domain]:
             return False
         
-        # if we have found enough pages in a certain subdomain
-        # all urls from the subdomain becomes invalid
+        # if we have found enough pages in a certain domain
+        # all urls from the domain becomes invalid
         if len(counter["PagesInDomain"][domain]) > depth:
             return False
         
@@ -120,7 +133,7 @@ def is_valid(url, counter: shelve.DbfilenameShelf):
             + r".*informatics.uci.edu.*|"
             + r".*stat.uci.edu.*|"
             + r"today.uci.edu/department/information_computer_sciences.*",
-                parsed.netloc.lower()):
+            parsed.netloc.lower()):
             return False
         
         if re.match(
