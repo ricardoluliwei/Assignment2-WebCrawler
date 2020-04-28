@@ -27,10 +27,8 @@ def extract_next_links(url: str, resp: Response,
         return list()
     
     print(f"extract: {url}")
-    
     soup = BeautifulSoup(resp.raw_response.content, features='lxml')
     
-    # do analysis here, get longest page
     # text is the pure text that we extract from the page excluding html tags
     text = soup.get_text()
     tokens = tokenize(text)
