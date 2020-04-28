@@ -12,7 +12,7 @@ import shelve
 
 depth = 200
 
-stop_words = open("stopWords.txt", "r").read()
+stop_words = open("stop_words.txt", "r").read()
 
 def scraper(url, resp, counter: shelve.DbfilenameShelf):
     links = extract_next_links(url, resp, counter)
@@ -31,9 +31,19 @@ def extract_next_links(url: str, resp: Response,
     
     soup = BeautifulSoup(resp.raw_response.content, features='lxml')
     links = soup.find_all('a')
-    
+
+    # do analysis here, get longest page and
+    text = soup.text
+    tokens = tokenize(text)
+    # compute the longest page
+    if len(tokens) > counter["longestPage"][1]:
+        counter["longestPage"] = (url, len(tokens))
+
+    # compute word frequencies
+    new_tokens = [x for x in tokens if x not in stop_words]
+    counter["WordFrequencies"] = compute_word_frequencies(new_tokens)
+
     result = set()
-    
     for l in links:
         try:
             # links are the urls found in this page
@@ -61,17 +71,6 @@ def extract_next_links(url: str, resp: Response,
         
         except:
             pass
-    
-    # do analysis here, get longest page and
-    text = soup.text
-    tokens = tokenize(text)
-    # compute the longest page
-    if len(tokens) > counter["longestPage"][1]:
-        counter["longestPage"] = (url, len(tokens))
-    
-    # compute word frequencies
-    new_tokens = [x for x in tokens if x not in stop_words]
-    counter["WordFrequencies"] = compute_word_frequencies(new_tokens)
     
     return list(result)
 

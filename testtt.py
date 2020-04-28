@@ -2,43 +2,18 @@
 import re
 pattern = re.compile("[\W_]+")
 
+from bs4 import BeautifulSoup
+from tokenizer import tokenize, compute_word_frequencies
 
-def tokenize(line: str):
-    """
-    Method/Function: List<Token> tokenize(TextFilePath)
-    Write a method/function that reads in a text file and returns a list of the tokens in that file. For the
-    purposes of this project, a token is a sequence of alphanumeric characters, independent of capitalization
-    (so Apple, apple are the same token).
 
-    Complexity: O(N)
-    """
-    tokens = []
-    try:
-        tokens += pattern.sub(' ', line).lower().split()
-    except Exception as err:
-        print(err)
-    finally:
-        return [token for token in tokens if len(token) > 1]
 
-print(tokenize('''[IDENTIFICATION]
-# Set your user agent string here.
-USERAGENT = 12345678
+infile = open("/Users/ricardo/Downloads/wics_test.html", "r")
 
-[CONNECTION]
-HOST = styx.ics.uci.edu
-PORT = 9000
+soup = BeautifulSoup(infile, features= "lxml")
 
-[CRAWLER]
-SEEDURL = https://www.ics.uci.edu,https://www.cs.uci.edu,https://www.informatics.uci.edu,https://www.stat.uci.edu
-# In seconds
-POLITENESS = 0.5
+words = compute_word_frequencies(tokenize(soup.text))
 
-[LOCAL PROPERTIES]
-# Save file for progress
-SAVE = frontier.shelve
+print(soup.find_all(text=True))
 
-# IMPORTANT: DO NOT CHANGE IT IF YOU HAVE NOT IMPLEMENTED MULTITHREADING.
-THREADCOUNT = 1
-doesn't
+print(words)
 
-'''))
