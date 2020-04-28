@@ -3,8 +3,7 @@ from urllib.parse import urlparse
 from utils.response import Response
 from bs4 import BeautifulSoup
 
-from utils import get_logger, get_urlhash
-from collections import defaultdict
+from utils import get_logger
 
 from tokenizer import tokenize
 from tokenizer import compute_word_frequencies
@@ -13,6 +12,7 @@ import shelve
 
 depth = 200
 
+stop_words = open("stopWords.txt", "r").read()
 
 def scraper(url, resp, counter: shelve.DbfilenameShelf):
     links = extract_next_links(url, resp, counter)
@@ -24,9 +24,9 @@ def extract_next_links(url: str, resp: Response,
     if resp.error:
         return list()
     
-    # logger = get_logger("scraper")
-    # logger.info(f"Scrape from : {url}")
-    print(f"scrape form {url}")
+    logger = get_logger("scraper")
+    logger.info(f"Scrape from : {url}")
+    print(f"Scrape form {url}")
     rootURL = urlparse(url)
     
     soup = BeautifulSoup(resp.raw_response.content, features='lxml')
@@ -44,20 +44,20 @@ def extract_next_links(url: str, resp: Response,
             linkParse = urlparse(link)
             domain = linkParse.netloc
             
-            # get the original url
+            # get the complete url
             if not linkParse.scheme:
                 if not linkParse.netloc:
                     link = rootURL.netloc + link
                 link = rootURL.scheme + link
             
-            if is_valid(link):
+            if is_valid(link, counter):
                 result.add(link)
-                # logger = get_logger("scraper")
-                # logger.info(f"New Found URL: {link}")
+                logger = get_logger("scraper")
+                logger.info(f"New Found URL: {link}")
                 print(f"new add : {link}")
             
             # count the subdomains
-            counter["PagesInDomain"][domain].add(get_urlhash(link))
+            counter["PagesInDomain"][domain].add(link)
         
         except:
             pass
@@ -70,8 +70,7 @@ def extract_next_links(url: str, resp: Response,
         counter["longestPage"] = (url, len(tokens))
     
     # compute word frequencies
-    infile = open("stopWords.txt", "r")
-    new_tokens = [x for x in tokens if x not in infile.read()]
+    new_tokens = [x for x in tokens if x not in stop_words]
     counter["WordFrequencies"] = compute_word_frequencies(new_tokens)
     
     return list(result)
@@ -83,7 +82,7 @@ def is_valid(url, counter: shelve.DbfilenameShelf):
         domain = parsed.netloc
         
         # if we have added this page, this page becomes invalid
-        if get_urlhash(url) in counter["PagesInDomain"][domain]:
+        if url in counter["PagesInDomain"][domain]:
             return False
         
         # if we have found enough pages in a certain subdomain

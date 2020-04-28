@@ -35,7 +35,7 @@ class Crawler(object):
         
         # Record how many unique pages in a domain, only crawl a certain number
         # of pages in a domain in case of traps.
-        # Dict key is the domain, value is the set of pages' url hash
+        # Dict key is the domain, value is the set of pages' url
         self.counter["PagesInDomain"] = self.counter.get("PagesInDomain",
                                                          defaultdict(str))
         
