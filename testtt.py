@@ -1,19 +1,13 @@
-
-import re
-pattern = re.compile("[\W_]+")
-
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
+from urllib.request import urlopen
 from tokenizer import tokenize, compute_word_frequencies
 
+html = urlopen("https://wics.ics.uci.edu/events/").read().decode("utf-8")
 
 
-infile = open("/Users/ricardo/Downloads/wics_test.html", "r")
+soup = BeautifulSoup(html, features='lxml')
+tokens = tokenize(soup.get_text())
 
-soup = BeautifulSoup(infile, features= "lxml")
 
-words = compute_word_frequencies(tokenize(soup.text))
-
-print(soup.find_all(text=True))
-
-print(words)
-
+print(len(compute_word_frequencies(tokens)))

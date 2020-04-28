@@ -2,6 +2,7 @@ import re
 from urllib.parse import urlparse
 from utils.response import Response
 from bs4 import BeautifulSoup
+from bs4.element import Comment
 
 from utils import get_logger
 
@@ -11,6 +12,7 @@ from tokenizer import compute_word_frequencies
 import shelve
 
 depth = 200
+low_value_limit = 150
 
 stop_words = open("stop_words.txt", "r").read()
 
@@ -32,8 +34,9 @@ def extract_next_links(url: str, resp: Response,
     soup = BeautifulSoup(resp.raw_response.content, features='lxml')
     links = soup.find_all('a')
 
-    # do analysis here, get longest page and
-    text = soup.text
+    # do analysis here, get longest page
+    # text is the content that we extract from the page
+    text = soup.get_text()
     tokens = tokenize(text)
     # compute the longest page
     if len(tokens) > counter["longestPage"][1]:
@@ -41,7 +44,18 @@ def extract_next_links(url: str, resp: Response,
 
     # compute word frequencies
     new_tokens = [x for x in tokens if x not in stop_words]
-    counter["WordFrequencies"] = compute_word_frequencies(new_tokens)
+    word_frequencies = compute_word_frequencies(new_tokens)
+    
+    # if the page has low value skip it
+    if len(word_frequencies) < low_value_limit:
+        return list()
+    
+    # add the word_frequencies to the total WordFrequencies
+    for k, v in word_frequencies:
+        if k in counter["WordFrequencies"].keys():
+            counter["WordFrequencies"][k] += v
+        else:
+            counter["WordFrequencies"][k] = v
 
     result = set()
     for l in links:
