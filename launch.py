@@ -18,7 +18,17 @@ def main(config_file, restart):
     print("50 most common words: ")
     print(crawler.get_most_common_words())
     print("Subdomains of ics.uci.edu")
-    print(crawler.get_subdomain_of_ics())
+    subdomains = crawler.get_subdomain_of_ics()
+    for k,v in subdomains.items():
+        print(f"{k}, {len(subdomains[k])}")
+    file = open("report_data.txt", "w")
+    file.write(f"Number of Unique Pages: {crawler.get_unique_pages()}\n")
+    file.write(f"Longest Page: {crawler.get_longest_page()}\n")
+    file.write("50 most common words: \n")
+    file.write(str(crawler.get_most_common_words()) + "\n")
+    file.write("Subdomains of ics.uci.edu:\n")
+    for k, v in subdomains.items():
+        file.writelines(f"{k}, {len(subdomains[k])}\n")
 
 if __name__ == "__main__":
     parser = ArgumentParser()

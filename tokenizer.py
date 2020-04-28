@@ -14,7 +14,7 @@ def tokenize(line: str) -> list:
         return [token for token in tokens if len(token) > 1]
 
 
-def compute_word_frequencies(tokens: list) -> defaultdict[str, int]:
+def compute_word_frequencies(tokens: list) -> dict:
     count = defaultdict(int)
     try:
         for token in tokens:

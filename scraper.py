@@ -10,8 +10,8 @@ import shelve
 
 depth = 200
 
-low_words_limit = 150
-high_token_limit = 10000
+low_words_limit = 50
+high_token_limit = 20000
 
 stop_words = open("stop_words.txt", "r").read()
 
@@ -74,6 +74,7 @@ def count_word_frequenies(word_frequencies, counter):
 def count_pages_in_domain(url: str, counter):
     parse = urlparse(url)
     domain = parse.netloc
+    
     PagesInDomain = counter["PagesInDomain"]
     PagesInDomain[domain].add(url)
     counter["PagesInDomain"] = PagesInDomain
@@ -101,8 +102,8 @@ def get_url_from_page(url: str, soup: BeautifulSoup, counter) -> list:
             
             if is_valid(link, counter):
                 result.add(link)
-                print(f"get: {url}")
-        finally:
+                print(f"get: {link}")
+        except:
             pass
     
     return list(result)

@@ -40,7 +40,7 @@ class Crawler(object):
         # of pages in a domain in case of traps.
         # Dict key is the domain, value is the set of pages' url
         self.counter["PagesInDomain"] = self.counter.get("PagesInDomain",
-                                                         defaultdict(str))
+                                                         defaultdict(set))
         
         # longest page
         self.counter["longestPage"] = self.counter.get("longestPage",
@@ -48,7 +48,7 @@ class Crawler(object):
         
         # word frequencies
         self.counter["WordFrequencies"] = self.counter.get("WordFrequencies",
-                                                           defaultdict(str))
+                                                           defaultdict(int))
     
     def get_unique_pages(self) -> int:
         count = 0
@@ -61,8 +61,9 @@ class Crawler(object):
     
     def get_subdomain_of_ics(self) -> dict:
         domains = self.counter["PagesInDomain"]
-        return {k: domains[k] for k, v in domains.items() if match(
-            r".*ics.uci.edu.*", k)}
+        return {k: domains[k] for k in sorted(domains) if
+                match(
+                    r".*ics.uci.edu.*", k)}
     
     def get_most_common_words(self) -> dict:
         word_frequencies = self.counter["WordFrequencies"]
