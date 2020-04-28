@@ -56,11 +56,14 @@ def extract_next_links(url: str, resp: Response,
         counter["longestPage"] = [url, len(tokens)]
     
     # add the word_frequencies to the total WordFrequencies
+    WordFrequencies = counter["WordFrequencies"]
     for k, v in word_frequencies.items():
-        if k in counter["WordFrequencies"].keys():
-            counter["WordFrequencies"][k] += v
+        if k in WordFrequencies.keys():
+            WordFrequencies[k] += v
         else:
-            counter["WordFrequencies"][k] = v
+            WordFrequencies[k] = v
+    
+    counter["WordFrequencies"] = WordFrequencies
 
     result = set()
     for l in links:
@@ -84,7 +87,9 @@ def extract_next_links(url: str, resp: Response,
                 print(f"new add : {link}")
             
             # count the subdomains
-            counter["PagesInDomain"][domain].add(link)
+            PagesInDomain = counter["PagesInDomain"]
+            PagesInDomain[domain].add(link)
+            counter[PagesInDomain] = PagesInDomain
         
         except:
             pass
