@@ -13,7 +13,12 @@ def main(config_file, restart):
     config.cache_server = get_cache_server(config, restart)
     crawler = Crawler(config, restart)
     crawler.start()
-
+    print(f"Number of Unique Pages: {crawler.get_unique_pages()}")
+    print(f"Longest Page: {crawler.get_longest_page()}")
+    print("50 most common words: ")
+    print(crawler.get_most_common_words())
+    print("Subdomains of ics.uci.edu")
+    print(crawler.get_subdomain_of_ics())
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -21,3 +26,5 @@ if __name__ == "__main__":
     parser.add_argument("--config_file", type=str, default="config.ini")
     args = parser.parse_args()
     main(args.config_file, args.restart)
+
+    

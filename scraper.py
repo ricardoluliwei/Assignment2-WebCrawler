@@ -12,7 +12,9 @@ from tokenizer import compute_word_frequencies
 import shelve
 
 depth = 200
-low_value_limit = 150
+
+low_words_limit = 150
+high_token_limit = 10000
 
 stop_words = open("stop_words.txt", "r").read()
 
@@ -26,8 +28,6 @@ def extract_next_links(url: str, resp: Response,
     if resp.error:
         return list()
     
-    logger = get_logger("scraper")
-    logger.info(f"Scrape from : {url}")
     print(f"Scrape form {url}")
     rootURL = urlparse(url)
     
@@ -38,20 +38,25 @@ def extract_next_links(url: str, resp: Response,
     # text is the content that we extract from the page
     text = soup.get_text()
     tokens = tokenize(text)
-    # compute the longest page
-    if len(tokens) > counter["longestPage"][1]:
-        counter["longestPage"] = (url, len(tokens))
 
     # compute word frequencies
     new_tokens = [x for x in tokens if x not in stop_words]
     word_frequencies = compute_word_frequencies(new_tokens)
     
     # if the page has low value skip it
-    if len(word_frequencies) < low_value_limit:
+    if len(word_frequencies) < low_words_limit:
         return list()
     
+    # if the page is too large skip it
+    if len(tokens) > high_token_limit:
+        return list()
+
+    # compute the longest page
+    if len(tokens) > counter["longestPage"][1]:
+        counter["longestPage"] = [url, len(tokens)]
+    
     # add the word_frequencies to the total WordFrequencies
-    for k, v in word_frequencies:
+    for k, v in word_frequencies.items():
         if k in counter["WordFrequencies"].keys():
             counter["WordFrequencies"][k] += v
         else:
@@ -76,8 +81,6 @@ def extract_next_links(url: str, resp: Response,
             
             if is_valid(link, counter):
                 result.add(link)
-                logger = get_logger("scraper")
-                logger.info(f"New Found URL: {link}")
                 print(f"new add : {link}")
             
             # count the subdomains

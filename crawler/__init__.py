@@ -5,11 +5,13 @@ import shelve
 from collections import defaultdict
 from re import match
 
+
 class Crawler(object):
     def __init__(self, config, restart, frontier_factory=Frontier,
                  worker_factory=Worker):
         self.counter = shelve.open("count.shelve")
         self.load_counter()
+        
         self.config = config
         self.logger = get_logger("CRAWLER")
         self.frontier = frontier_factory(config, restart)
@@ -18,7 +20,8 @@ class Crawler(object):
     
     def start_async(self):
         self.workers = [
-            self.worker_factory(worker_id, self.config, self.frontier)
+            self.worker_factory(worker_id, self.config, self.frontier,
+                                self.counter)
             for worker_id in range(self.config.threads_count)]
         for worker in self.workers:
             worker.start()
@@ -41,7 +44,7 @@ class Crawler(object):
         
         # longest page
         self.counter["longestPage"] = self.counter.get("longestPage",
-                                                       tuple())
+                                                       ["", 0])
         
         # word frequencies
         self.counter["WordFrequencies"] = self.counter.get("WordFrequencies",
