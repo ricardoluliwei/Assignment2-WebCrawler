@@ -146,6 +146,9 @@ def is_valid(url, counter: shelve.DbfilenameShelf):
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower()):
             return False
         
+        if re.match(r".*/pdf/.*", parsed.path.lower()):
+            return False
+        
         return True
     
     except TypeError:

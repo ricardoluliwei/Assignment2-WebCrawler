@@ -28,7 +28,7 @@ def main(config_file, restart):
     file.write(str(crawler.get_most_common_words()) + "\n")
     file.write("Subdomains of ics.uci.edu:\n")
     for k, v in subdomains.items():
-        file.writelines(f"{k}, {len(subdomains[k])}\n")
+        file.write(f"{k}, {len(subdomains[k])}\n")
 
 if __name__ == "__main__":
     parser = ArgumentParser()
