@@ -35,7 +35,6 @@ informatics.ics.uci.edu, 28
 ipubmed.ics.uci.edu, 1
 isg.ics.uci.edu, 114
 jgarcia.ics.uci.edu, 6
-linguistics.uci.edu, 1
 mailman.ics.uci.edu, 3
 malek.ics.uci.edu, 1
 mcs.ics.uci.edu, 41
@@ -68,5 +67,4 @@ www.cert.ics.uci.edu, 1
 www.graphics.ics.uci.edu, 1
 www.ics.uci.edu, 296
 www.informatics.ics.uci.edu, 1
-www.informatics.uci.edu, 334
 xtune.ics.uci.edu, 2

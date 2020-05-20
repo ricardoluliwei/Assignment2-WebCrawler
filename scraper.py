@@ -127,10 +127,10 @@ def is_valid(url, counter: shelve.DbfilenameShelf):
             return False
         
         if not re.match(
-            r".*ics.uci.edu.*|"
-            + r".*cs.uci.edu.*|"
-            + r".*informatics.uci.edu.*|"
-            + r".*stat.uci.edu.*|"
+            r".*.ics.uci.edu.*|"
+            + r".*.cs.uci.edu.*|"
+            + r".*.informatics.uci.edu.*|"
+            + r".*.stat.uci.edu.*|"
             + r"today.uci.edu/department/information_computer_sciences.*",
             parsed.netloc.lower()):
             return False

@@ -63,7 +63,7 @@ class Crawler(object):
         domains = self.counter["PagesInDomain"]
         return {k: domains[k] for k in sorted(domains) if
                 match(
-                    r".*ics.uci.edu.*", k)}
+                    r".*.ics.uci.edu.*", k)}
     
     def get_most_common_words(self) -> dict:
         word_frequencies = self.counter["WordFrequencies"]
